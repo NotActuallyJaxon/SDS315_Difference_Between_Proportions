@@ -1,0 +1,240 @@
+---
+title: "Hw7"
+author: "Jaxon Lara"
+date: "jtl3236"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+library(mosaic)
+#install.packages("MatchIt")
+library(MatchIt)
+```
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+# Numbers and statistics
+armfold = read.csv("armfold.csv")
+
+bootstrap_diffPropMF = do(5000)*(
+  prop(resample(armfold[armfold$Sex == "Male",]$LonR_fold == 1)) -
+  prop(resample(armfold[armfold$Sex == "Female",]$LonR_fold == 1))
+)
+diffPropMF = confint(bootstrap_diffPropMF, level=0.95)
+
+numMales = sum(armfold$Sex=="Male")
+numFemales = numFemale = sum(armfold$Sex=="Female")
+
+propMalesLeft = as.numeric(prop(armfold[armfold$Sex == "Male",]$LonR_fold == 1))
+propFemalesLeft = as.numeric(prop(armfold[armfold$Sex == "Female",]$LonR_fold == 1))
+
+standard_error = sqrt( ((propMalesLeft*(1 - propMalesLeft)) / numMales) + ((propFemalesLeft*(1 - propFemalesLeft)) / numFemales) )
+
+mean_sampling_distribution = mean(bootstrap_diffPropMF$prop_TRUE)
+
+lowerbound = mean_sampling_distribution - 1.96 * standard_error
+upperbound = mean_sampling_distribution + 1.96 * standard_error
+```
+
+# 1A  
+The number of male students: `r numMales`  
+The number of female students: `r numFemales`  
+The sample proportion of males who folded their left arm on top: `r round(propMalesLeft,2)`  
+The sample proportion of males who folded their left arm on top: `r round(propFemalesLeft,2)`  
+  
+# 1B  
+The observed difference in proportions between the two groups (males - females): `r propMalesLeft - propFemalesLeft`  
+
+# 1C  
+The 95% confidence interval for the difference in proportions (males - females). (R's built in function)  
+Lower bound: `r round(diffPropMF$lower,3)`, Upper bound: `r round(diffPropMF$upper,3)`  
+
+standard error for the difference in proportions:  
+sqrt( ((samplePropGroup1(1-samplePropGroup1)) / sampleSize1) + ((samplePropGroup2(1-samplePropGroup2)) / sampleSize2)  
+or  
+sqrt( ((propMalesLeft(1-propMalesLeft)) / numMales) + ((propFemalesLeft(1-propFemalesLeft)) / numFemales) )  
+
+standard error for difference in proportions: `r round(standard_error,3)`  
+
+sample mean for the difference in proportions: `r round(mean_sampling_distribution,3)`  
+
+z, standard deviations: 1.96  
+
+upperbound = (sample mean) + (1.96) * (standard error)  
+lowerbound = (sample mean) - (1.96) * (standard error)  
+upper bound: `r upperbound`  
+lower bound: `r lowerbound`  
+
+# 1D  
+If we were to take many many samples of students who were asked to fold their arms across their chest  
+and calculate their corresponding confidence intervals. Then we would expect that 95% of those confidence  
+intervals contain the true difference in proportions.  
+
+# 1E  
+The standard error for the difference in proportions represents how varied a sample mean for the  
+difference in proportions could be from the true population difference in proportions.  
+
+# 1F  
+The term sampling distribution refers to the distribution of bootstrapped samples created from resampling  
+the proportion of Males/Females who folded their left arm on top. Specifically, isolating the cases whose  
+sex was male (fixed sex) and resampling whether or not they folded their left arm on top with replacement  
+(varies from sample to sample). Then doing the same for cases whose sex was female and subtracting the  
+male proportion from the female proportion to get that sample's difference in proportions. Then repeat.  
+
+# 1G  
+The central limit theorem, because the sampling distribution is reasonably assumed to be made up  
+of many many samples. The central limit theorem says that the distribution of a sample mean or in this  
+case proportions will become approximately normal with a reasonably large sample size.  
+
+# 1H  
+I would say that their assessment is correct because the 95% confidence interval includes 0  
+and so there is not enough evidence to suggest there is a difference in arm folding based on sex.  
+
+# 1I  
+Yes the confidence intervals will be different across the samples but the true difference in  
+proportions of folding left arms on top for males and females should be contained within  
+95% of those confidence intervals.  
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+turnout = read.csv("turnout.csv")
+
+#Prop of those receiving a GOTV call who voted in 1998
+call_1998 = prop(turnout[turnout$GOTV_call == 1,]$voted1998 == 1)
+
+#Sample proportion of those not receiving a GOTV call who voted in 1998
+notCall_1998 = prop(turnout[turnout$GOTV_call == 0,]$voted1998 == 1)
+
+#95% confidence interval by bootstrapping
+bootstrap_diffPropTO = do(5000)*(
+  prop(resample(turnout[turnout$GOTV_call == 1,]$voted1998 == 1)) -
+  prop(resample(turnout[turnout$GOTV_call == 0,]$voted1998 == 1))
+)
+confintTO = confint(bootstrap_diffPropTO, level=0.95)
+```
+
+# 2A  
+The proportion of those receiving a GOTV call who voted in 1998: `r round(call_1998,2)`  
+The sample proportion of those not reciving a GOTV call who voted in 1998: `r round(notCall_1998,2)`  
+
+Large-sample 95% confidence interval for the difference in these two proportions:  
+Lower bound: `r round(confintTO$lower,3)`, Upper bound: `r round(confintTO$upper,3)`  
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+#voted1996
+bootstrap_voted1996_1 = do(5000)*cor(voted1996 ~ voted1998, data=resample(turnout)) #outcome
+confint1996_1 = confint(bootstrap_voted1996_1, level=0.95)
+
+bootstrap_voted1996_2 = do(5000)*cor(voted1996 ~ GOTV_call, data=resample(turnout)) #treatment
+confint1996_2 = confint(bootstrap_voted1996_2, level=0.95)
+
+#AGE
+bootstrap_AGE_1 = do(5000)*cor(AGE ~ voted1998, data=resample(turnout)) #outcome
+confintAGE_1 = confint(bootstrap_AGE_1, level=0.95)
+
+bootstrap_AGE_2 = do(5000)*cor(AGE ~ GOTV_call, data=resample(turnout)) #treatment
+confintAGE_2 = confint(bootstrap_AGE_2, level=0.95)
+
+#MAJORPTY
+bootstrap_MAJORPTY_1 = do(5000)*cor(MAJORPTY ~ voted1998, data=resample(turnout)) #outcome
+confintMAJORPTY_1 = confint(bootstrap_MAJORPTY_1, level=0.95)
+
+bootstrap_MAJORPTY_2 = do(5000)*cor(MAJORPTY ~ GOTV_call, data=resample(turnout)) #treatment
+confintMAJORPTY_2 = confint(bootstrap_MAJORPTY_2, level=0.95)
+```
+
+# 2B
+The correlation between voted1996 and voted1998 using a large-sample confidence interval  
+is estimated to be the following.  
+Lower bound: `r round(confint1996_1$lower,3)`, Upper bound: `r round(confint1996_1$upper,3)`  
+The correlation between voted1996 and GOTV_call call using a large-sample confidence interval  
+is estimated to be the following.  
+Lower bound: `r round(confint1996_2$lower,3)`, Upper bound: `r round(confint1996_2$upper,3)`  
+voted1996 is highly correlated to both the treatment(GOTV_call) and the outcome(voted1998)  
+because 0 is included in neither interval which is evidence that voted1996 is a confounder.  
+
+The correlation between AGE and voted1998 using a large-sample confidence interval  
+is estimated to be the following.  
+Lower bound: `r round(confintAGE_1$lower,3)`, Upper bound: `r round(confintAGE_1$upper,3)`  
+The correlation between AGE and GOTV_call using a large-sample confidence interval  
+is estimated to be the following.  
+Lower bound: `r round(confintAGE_2$lower,3)`, Upper bound: `r round(confintAGE_2$upper,3)`  
+AGE is highly correlated to both the treatment(GOTV_call) and the outcome(voted1998)  
+because 0 is included in neither interval which is evidence that AGE is a confounder.  
+
+The correlation between MAJORPTY and voted1998 using a large-sample confidence interval  
+is estimated to be the following.  
+Lower bound: `r round(confintMAJORPTY_1$lower,3)`, Upper bound: `r round(confintMAJORPTY_1$upper,3)`  
+The correlation between MAJORPTY and GOTV_call using a large-sample confidence interval  
+is estimated to be the following.  
+Lower bound: `r round(confintMAJORPTY_2$lower,3)`, Upper bound: `r round(confintMAJORPTY_2$upper,3)`  
+MAJORPTY is highly correlated to both the treatment(GOTV_call) and the outcome(voted1998)
+because 0 is included in neither interval which is evidence that MAJORPTY is a confounder.
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+# Match to the 3 confounders, voted1996, age, majorpty
+turnout_match = matchit(GOTV_call ~ voted1996 + factor(AGE) + factor(MAJORPTY), data = turnout, ratio=5)
+# Extracting the matched pairs
+turnout_matched = match.data(turnout_match)
+
+
+
+#voted1996
+bootstrap_voted1996_2_matched = do(5000)*cor(voted1996 ~ GOTV_call, data=resample(turnout_matched)) #treatment
+confint1996_3 = confint(bootstrap_voted1996_2_matched, level=0.95)
+
+#AGE
+bootstrap_AGE_2_matched = do(5000)*cor(AGE ~ GOTV_call, data=resample(turnout_matched)) #treatment
+confintAGE_3 = confint(bootstrap_AGE_2_matched, level=0.95)
+
+#MAJORPTY
+bootstrap_MAJORPTY_2_matched = do(5000)*cor(MAJORPTY ~ GOTV_call, data=resample(turnout_matched)) #treatment
+confintMAJORPTY_3 = confint(bootstrap_MAJORPTY_2_matched, level=0.95)
+
+
+
+#Prop of those receiving a GOTV call who voted in 1998
+call_1998_matched = prop(turnout_matched[turnout_matched$GOTV_call == 1,]$voted1998 == 1)
+
+#Sample proportion of those not receiving a GOTV call who voted in 1998
+notCall_1998_matched = prop(turnout_matched[turnout_matched$GOTV_call == 0,]$voted1998 == 1)
+
+#95% confidence interval by bootstrapping (for matched dataset)
+bootstrap_diffPropTO_matched = do(5000)*(
+  prop(resample(turnout_matched[turnout_matched$GOTV_call == 1,]$voted1998 == 1)) -
+  prop(resample(turnout_matched[turnout_matched$GOTV_call == 0,]$voted1998 == 1))
+)
+confintTO_matched = confint(bootstrap_diffPropTO_matched, level=0.95)
+```
+
+# 2C  
+The correlation between voted1996 and GOTV_call call using a large-sample confidence interval  
+is estimated to be the following.  
+Lower bound: `r round(confint1996_3$lower,3)`, Upper bound: `r round(confint1996_3$upper,3)`  
+voted1996 is no longer highly correlated to the treatment(GOTV_call) because 0 is included  
+in the confidence interval which is evidence that voted1996 is no longer a confounder.  
+
+The correlation between AGE and GOTV_call using a large-sample confidence interval  
+is estimated to be the following.  
+Lower bound: `r round(confintAGE_3$lower,3)`, Upper bound: `r round(confintAGE_3$upper,3)`  
+AGE is no longer highly correlated to the treatment(GOTV_call) because 0 is included  
+in the confidence interval which is evidence that AGE is no longer a confounder.  
+
+The correlation between MAJORPTY and GOTV_call using a large-sample confidence interval  
+is estimated to be the following.  
+Lower bound: `r round(confintMAJORPTY_3$lower,3)`, Upper bound: `r round(confintMAJORPTY_3$upper,3)`  
+MAJORPTY is no longer highly correlated to the treatment(GOTV_call) because 0 is included  
+in the confidence interval which is evidence that MAJORPTY is no longer a confounder.  
+
+
+Repeating the analysis from part A with the matched data:  
+The proportion of those receiving a GOTV call who voted in 1998: `r round(call_1998_matched,2)`  
+The sample proportion of those not reciving a GOTV call who voted in 1998: `r round(notCall_1998_matched,2)`  
+
+Large-sample 95% confidence interval for the difference in these two proportions:  
+Lower bound: `r round(confintTO_matched$lower,3)`, Upper bound: `r round(confintTO_matched$upper,3)`  
+
+To conclude: There is enough evidence to suggest the GOTV call increases the likelihood of voting  
+in the 1998 election because the interval is positive and 0 is not included in the confidence interval.  
