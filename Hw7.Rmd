@@ -39,6 +39,8 @@ lowerbound = mean_sampling_distribution - 1.96 * standard_error
 upperbound = mean_sampling_distribution + 1.96 * standard_error
 ```
 
+[(Github_R_Code)](https://github.com/NotActuallyJaxon/SDS315_Difference_Between_Proportions/blob/main/Hw7.Rmd)
+
 # 1A  
 The number of male students: `r numMales`  
 The number of female students: `r numFemales`  
@@ -62,6 +64,8 @@ standard error for difference in proportions: `r round(standard_error,3)`
 sample mean for the difference in proportions: `r round(mean_sampling_distribution,3)`  
 
 z, standard deviations: 1.96  
+because i wanted to create a 95% confidence interval I would have to go out 1.96 standard deviations  
+to either side to contain 95% of sample difference in proportions.  
 
 upperbound = (sample mean) + (1.96) * (standard error)  
 lowerbound = (sample mean) - (1.96) * (standard error)  
@@ -115,8 +119,6 @@ bootstrap_diffPropTO = do(5000)*(
 )
 confintTO = confint(bootstrap_diffPropTO, level=0.95)
 ```
-
-[(Github_R_Code)](https://github.com/NotActuallyJaxon/SDS315_Difference_Between_Proportions)
 
 # 2A  
 The proportion of those receiving a GOTV call who voted in 1998: `r round(call_1998,2)`  
